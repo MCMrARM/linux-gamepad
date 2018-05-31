@@ -40,7 +40,7 @@ private:
 public:
     CallbackId add(T t) {
         auto id = nextId++;
-        callbacks.emplace_back(id, t);
+        callbacks.push_back({id, t});
         return id;
     }
 
@@ -62,7 +62,7 @@ public:
     template <typename ...Args>
     void operator ()(Args&&... args) {
         for (auto const& c : callbacks)
-            c(args...);
+            c.value(args...);
     }
 
 };
