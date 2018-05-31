@@ -4,10 +4,6 @@
 
 using namespace gamepad;
 
-int Gamepad::getIndex() const {
-    return joystick.getIndex();
-}
-
 bool Gamepad::getButton(GamepadButton index) const {
     for (auto const& map : mapping.mappings) {
         if (map.to.type != GamepadMapping::MapTo::Type::BUTTON || map.to.d.button.id != index)

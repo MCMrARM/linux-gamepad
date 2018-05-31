@@ -10,17 +10,21 @@ class GamepadMapping;
 class Gamepad {
 
 private:
+    int index;
     Joystick& joystick;
     GamepadMapping& mapping;
 
 public:
-    Gamepad(Joystick& joystick, GamepadMapping& mapping) : joystick(joystick), mapping(mapping) {}
+    Gamepad(int index, Joystick& joystick, GamepadMapping& mapping) : index(index), joystick(joystick),
+                                                                      mapping(mapping) {}
 
     Joystick const& getJoystick() const {
         return joystick;
     }
 
-    int getIndex() const;
+    int getIndex() const {
+        return index;
+    }
 
     bool getButton(GamepadButton index) const;
 

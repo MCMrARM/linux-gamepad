@@ -1,5 +1,7 @@
 #pragma once
 
+namespace gamepad {
+
 class Joystick {
 
 public:
@@ -12,3 +14,5 @@ public:
     virtual int getHat(int index) const = 0;
 
 };
+
+}
