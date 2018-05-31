@@ -10,8 +10,6 @@ private:
     Gamepad* gamepad = nullptr;
 
 public:
-    virtual int getIndex() const = 0;
-
     virtual bool getButton(int index) const = 0;
 
     virtual float getAxis(int index) const = 0;
