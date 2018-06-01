@@ -16,8 +16,10 @@ private:
     std::vector<std::unique_ptr<LinuxJoystick>> joysticks;
 
 public:
-    LinuxJoystickManager();
+    LinuxJoystickManager() {}
     ~LinuxJoystickManager();
+
+    void initialize() override;
 
     void poll() override;
 

@@ -6,7 +6,10 @@
 
 using namespace gamepad;
 
-LinuxJoystickManager::LinuxJoystickManager() {
+LinuxJoystickManager::~LinuxJoystickManager() {
+}
+
+void LinuxJoystickManager::initialize() {
     if (!udev) {
         udev = udev_new();
         if (!udev)
@@ -34,11 +37,9 @@ LinuxJoystickManager::LinuxJoystickManager() {
     udev_enumerate_unref(enumerate);
 }
 
-LinuxJoystickManager::~LinuxJoystickManager() {
-}
-
 void LinuxJoystickManager::poll() {
-    //
+    for (auto const& js : joysticks)
+        js->poll();
 }
 
 void LinuxJoystickManager::onDeviceAdded(struct udev_device* dev) {
@@ -57,7 +58,7 @@ void LinuxJoystickManager::onDeviceAdded(struct udev_device* dev) {
             return;
         }
 
-        std::unique_ptr<LinuxJoystick> js (new LinuxJoystick(edev));
+        std::unique_ptr<LinuxJoystick> js (new LinuxJoystick(this, edev));
         onJoystickConnected(js.get());
         joysticks.push_back(std::move(js));
     }

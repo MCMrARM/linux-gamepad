@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdlib>
+
 namespace gamepad {
 
 enum class GamepadButton {
@@ -9,5 +11,8 @@ enum class GamepadButton {
 enum class GamepadAxis {
     LEFT_X, LEFT_Y, RIGHT_X, RIGHT_Y, LEFT_TRIGGER, RIGHT_TRIGGER
 };
+
+static constexpr std::size_t GAMEPAD_BUTTON_COUNT = (std::size_t) GamepadButton::DPAD_LEFT + 1;
+static constexpr std::size_t GAMEPAD_AXIS_COUNT = (std::size_t) GamepadAxis::RIGHT_TRIGGER + 1;
 
 }
