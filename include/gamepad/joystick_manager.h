@@ -13,6 +13,7 @@ public:
     CallbackList<std::function<void (Joystick* js)>> onJoystickConnected;
     CallbackList<std::function<void (Joystick* js)>> onJoystickDisconnected;
     CallbackList<std::function<void (Joystick* js, int button, bool state)>> onJoystickButton;
+    CallbackList<std::function<void (Joystick* js, int axis, float value)>> onJoystickAxis;
 
     virtual void initialize() = 0;
 
