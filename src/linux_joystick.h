@@ -18,7 +18,7 @@ private:
     struct AxisInfo {
         int index;
         int min, max;
-        float flat, fuzz;
+        int flat, fuzz;
     };
 
     int buttons[KEY_CNT];
@@ -28,6 +28,12 @@ private:
     std::bitset<BUTTON_COUNT> buttonValues;
     static constexpr int AXIS_COUNT = ABS_CNT;
     float axisValues[AXIS_COUNT];
+    static constexpr int HAT_COUNT = (ABS_HAT3Y + 1 - ABS_HAT0X) / 2;
+    int hatValues[HAT_COUNT];
+
+    inline bool isHat(int index) {
+        return (index >= ABS_HAT0X && index <= ABS_HAT3Y);
+    }
 
 public:
     LinuxJoystick(LinuxJoystickManager* mgr, struct libevdev* edev);
@@ -47,7 +53,9 @@ public:
     }
 
     virtual int getHat(int index) const {
-        return 0;
+        if (index < 0 || index >= HAT_COUNT)
+            return false;
+        return hatValues[index];
     }
 
 };

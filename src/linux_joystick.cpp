@@ -43,15 +43,17 @@ LinuxJoystick::LinuxJoystick(LinuxJoystickManager* mgr, struct libevdev* edev) :
             axis[i].index = -1;
             continue;
         }
-        if (i == ABS_HAT0X) { // skip hats
-            i = ABS_HAT3Y;
-            continue;
-        }
         const input_absinfo* absinfo = libevdev_get_abs_info(edev, i);
         if (absinfo == nullptr)
             continue;
-        float mm = 1.f / (absinfo->minimum + absinfo->maximum);
-        axis[i] = {nextId++, absinfo->minimum, absinfo->maximum, absinfo->flat * mm, absinfo->fuzz * mm};
+        int id = isHat(i) ? 0 : (nextId++);
+        axis[i] = {id, absinfo->minimum, absinfo->maximum, absinfo->flat, absinfo->fuzz};
+    }
+    nextId = 0;
+    for (size_t i = ABS_HAT0X; i <= ABS_HAT3Y; i += 2) {
+        if (axis[i].index == -1 && axis[i + 1].index == -1)
+            continue;
+        axis[i].index = axis[i + 1].index = nextId++;
     }
 }
 
@@ -75,6 +77,23 @@ void LinuxJoystick::poll() {
             buttons[btn] = v;
             if (mgr)
                 mgr->onJoystickButton(this, btn, v);
+        } else if (e.type == EV_ABS && isHat(e.code)) {
+            auto& a = axis[e.code];
+            if (a.index == -1)
+                continue;
+            const bool y = (bool) (e.code & 1);
+            int v = hatValues[a.index];
+            // v (left, down, right, up)
+            v &= ~(y ? 0b0101 : 0b1010);
+            if (e.value != 0) {
+                if (y)
+                    v |= (e.value > 0 ? 4 : 1);
+                else
+                    v |= (e.value > 0 ? 2 : 8);
+            }
+            hatValues[a.index] = v;
+            if (mgr)
+                mgr->onJoystickHat(this, a.index, v);
         } else if (e.type == EV_ABS) {
             if (e.code >= AXIS_COUNT)
                 continue;
@@ -86,9 +105,9 @@ void LinuxJoystick::poll() {
                 v = (float) e.value / a.max;
             else
                 v = - (float) e.value / a.min;
-            v = std::min(std::max(v, 0.f), 1.f);
-            if (std::abs(v) < a.flat)
+            if (std::abs(e.value) < a.flat)
                 v = 0.f;
+            v = std::min(std::max(v, 0.f), 1.f);
             axisValues[a.index] = v;
             if (mgr)
                 mgr->onJoystickAxis(this, a.index, v);
