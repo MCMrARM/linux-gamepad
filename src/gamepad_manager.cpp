@@ -73,6 +73,8 @@ void GamepadManager::onJoystickButton(Joystick* js, int button, bool state) {
             continue;
         if (map.to.type == GamepadMapping::MapTo::Type::BUTTON) {
             onGamepadButton(gp, map.to.d.button.id, state);
+        } else if (map.to.type == GamepadMapping::MapTo::Type::AXIS) {
+            onGamepadAxis(gp, map.to.d.axis.id, state ? map.to.d.axis.max : map.to.d.axis.min);
         }
     }
 }

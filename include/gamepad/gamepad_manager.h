@@ -19,6 +19,7 @@ public:
     CallbackList<std::function<void (Gamepad* gp)>> onGamepadConnected;
     CallbackList<std::function<void (Gamepad* gp)>> onGamepadDisconnected;
     CallbackList<std::function<void (Gamepad* gp, GamepadButton btn, bool pressed)>> onGamepadButton;
+    CallbackList<std::function<void (Gamepad* gp, GamepadAxis axis, float value)>> onGamepadAxis;
 
     void addMapping(GamepadMapping& mapping);
     void addMapping(std::string const& mapping);
