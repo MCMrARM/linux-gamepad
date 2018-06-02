@@ -41,6 +41,7 @@ protected:
 
     void onJoystickButton(Joystick* js, int button, bool state);
     void onJoystickAxis(Joystick* js, int axis, float value);
+    void onJoystickHat(Joystick* js, int hat, int value);
 
 };
 

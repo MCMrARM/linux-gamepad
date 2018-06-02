@@ -13,6 +13,7 @@ GamepadManager::GamepadManager(JoystickManager& jsManager) : jsManager(jsManager
     jsManager.onJoystickDisconnected.add(*this, std::bind(&GamepadManager::onJoystickDisconnected, this, _1));
     jsManager.onJoystickButton.add(*this, std::bind(&GamepadManager::onJoystickButton, this, _1, _2, _3));
     jsManager.onJoystickAxis.add(*this, std::bind(&GamepadManager::onJoystickAxis, this, _1, _2, _3));
+    jsManager.onJoystickHat.add(*this, std::bind(&GamepadManager::onJoystickHat, this, _1, _2, _3));
 }
 
 void GamepadManager::addMapping(GamepadMapping& mapping) {
@@ -95,6 +96,22 @@ void GamepadManager::onJoystickAxis(Joystick* js, int axis, float value) {
             if (std::isnan(v))
                 continue;
             onGamepadAxis(gp, map.to.d.axis.id, v);
+        }
+    }
+}
+
+void GamepadManager::onJoystickHat(Joystick* js, int hat, int value) {
+    Gamepad* gp = js->getGamepad();
+    if (gp == nullptr)
+        return;
+    for (auto const& map : gp->getMapping().mappings) {
+        if (map.from.type != GamepadMapping::MapFrom::Type::HAT || map.from.d.hat.id != hat)
+            continue;
+        bool state = (value & map.from.d.hat.mask) != 0;
+        if (map.to.type == GamepadMapping::MapTo::Type::BUTTON) {
+            onGamepadButton(gp, map.to.d.button.id, state);
+        } else if (map.to.type == GamepadMapping::MapTo::Type::AXIS) {
+            onGamepadAxis(gp, map.to.d.axis.id, state ? map.to.d.axis.max : map.to.d.axis.min);
         }
     }
 }
