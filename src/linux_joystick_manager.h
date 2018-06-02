@@ -23,8 +23,8 @@ public:
 
     void poll() override;
 
-
     void onDeviceAdded(struct udev_device* dev);
+    void onDeviceRemoved(struct udev_device* dev);
 
 };
 

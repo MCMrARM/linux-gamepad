@@ -12,7 +12,8 @@ using namespace gamepad;
 #define NLONGS(x) (((x) - 1) / LBITS + 1)
 #define TEST_BIT(v, i) !!((v)[(i) / LBITS] & (1L << ((i) % LBITS)))
 
-LinuxJoystick::LinuxJoystick(LinuxJoystickManager* mgr, struct libevdev* edev) : mgr(mgr), edev(edev) {
+LinuxJoystick::LinuxJoystick(LinuxJoystickManager* mgr, std::string const& path, struct libevdev* edev) :
+        mgr(mgr), devPath(path), edev(edev) {
     int fd = libevdev_get_fd(edev);
 
     memset(buttons, 0xff, sizeof(buttons)); // sets all the buttons to -1 by default

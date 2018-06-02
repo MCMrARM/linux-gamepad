@@ -14,6 +14,7 @@ class LinuxJoystick : public Joystick {
 private:
     LinuxJoystickManager* mgr;
     struct libevdev* edev;
+    std::string devPath;
 
     struct AxisInfo {
         int index;
@@ -36,7 +37,11 @@ private:
     }
 
 public:
-    LinuxJoystick(LinuxJoystickManager* mgr, struct libevdev* edev);
+    LinuxJoystick(LinuxJoystickManager* mgr, std::string const& path, struct libevdev* edev);
+
+    inline std::string const& getPath() const {
+        return devPath;
+    }
 
     void poll();
 

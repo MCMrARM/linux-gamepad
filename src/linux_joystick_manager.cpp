@@ -38,6 +38,27 @@ void LinuxJoystickManager::initialize() {
 }
 
 void LinuxJoystickManager::poll() {
+    if (udevMonitor != NULL) {
+        while (true) {
+            struct timeval tv;
+            tv.tv_sec = tv.tv_usec = 0;
+            fd_set fds;
+            FD_ZERO(&fds);
+            FD_SET(udevMonitorFd, &fds);
+
+            int r = select(udevMonitorFd + 1, &fds, NULL, NULL, &tv);
+            if (r <= 0 || !FD_ISSET(udevMonitorFd, &fds))
+                break;
+            struct udev_device* dev = udev_monitor_receive_device(udevMonitor);
+            const char* action = udev_device_get_action(dev);
+            if (strcmp(action, "add") == 0)
+                onDeviceAdded(dev);
+            else if (strcmp(action, "remove") == 0)
+                onDeviceRemoved(dev);
+            udev_device_unref(dev);
+        }
+    }
+
     for (auto const& js : joysticks)
         js->poll();
 }
@@ -58,12 +79,24 @@ void LinuxJoystickManager::onDeviceAdded(struct udev_device* dev) {
             return;
         }
 
-        std::unique_ptr<LinuxJoystick> js (new LinuxJoystick(this, edev));
+        std::unique_ptr<LinuxJoystick> js (new LinuxJoystick(this, devPath, edev));
         onJoystickConnected(js.get());
         joysticks.push_back(std::move(js));
     }
 }
 
+void LinuxJoystickManager::onDeviceRemoved(struct udev_device* dev) {
+    const char* devPath = udev_device_get_devnode(dev);
+    if (devPath == nullptr)
+        return;
+    for (auto it = joysticks.begin(); it != joysticks.end(); it++) {
+        if (strcmp(it->get()->getPath().c_str(), devPath) == 0) {
+            onJoystickDisconnected(it->get());
+            joysticks.erase(it);
+            return;
+        }
+    }
+}
 
 std::shared_ptr<JoystickManager> JoystickManagerFactory::create() {
     return std::shared_ptr<JoystickManager>(new LinuxJoystickManager());
