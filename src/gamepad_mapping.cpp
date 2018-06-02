@@ -1,5 +1,6 @@
 #include <gamepad/gamepad_mapping.h>
 #include <stdexcept>
+#include <cmath>
 
 using namespace gamepad;
 
@@ -132,4 +133,22 @@ void GamepadMapping::parse(std::string const& mapping) {
 
         iof = mapping.find(',', iof);
     }
+}
+
+
+bool GamepadMapping::isAxisActive(MapFrom const& map, float value) {
+    if (map.d.axis.min < map.d.axis.max)
+        return (value >= (map.d.axis.min + map.d.axis.max) / 2);
+    else
+        return (value <= (map.d.axis.min + map.d.axis.max) / 2);
+}
+
+float GamepadMapping::getAxisTransformedValue(Mapping const& map, float value) {
+    auto& a = map.from.d.axis;
+    auto& d = map.to.d.axis;
+    if (value < std::min(a.min, a.max) || value > std::max(a.min, a.max))
+        return NAN;
+    value = (value - a.min) / (a.max - a.min);
+    value = d.min + value * (d.max - d.min);
+    return value;
 }

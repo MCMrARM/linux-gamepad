@@ -60,6 +60,9 @@ public:
 
     void parse(std::string const& mapping);
 
+    static bool isAxisActive(MapFrom const& map, float value);
+    static float getAxisTransformedValue(Mapping const& map, float value);
+
 private:
     static std::unordered_map<std::string, GamepadButton> createKnownButtonList();
     static std::unordered_map<std::string, GamepadAxis> createKnownAxisList();
