@@ -111,11 +111,11 @@ void GamepadMapping::parse(std::string const& mapping) {
             c.from.type = MapFrom::Type::AXIS;
             c.from.d.axis.id = parse_int(mapping, iof + 1, iof);
             if (fromMod == 0) {
-                c.to.d.axis.min = -1.f;
-                c.to.d.axis.max = 1.f;
+                c.from.d.axis.min = -1.f;
+                c.from.d.axis.max = 1.f;
             } else {
-                c.to.d.axis.min = 0.f;
-                c.to.d.axis.max = fromMod == '+' ? 1.f : -1.f;
+                c.from.d.axis.min = 0.f;
+                c.from.d.axis.max = fromMod == '+' ? 1.f : -1.f;
             }
             if (inv)
                 std::swap(c.to.d.axis.min, c.to.d.axis.max);
