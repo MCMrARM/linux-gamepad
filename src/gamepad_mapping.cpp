@@ -7,6 +7,7 @@ std::size_t GamepadMapping::find_e(std::string const& s, char c, size_t a) {
     auto p = s.find(c, a);
     if (p == std::string::npos)
         throw std::invalid_argument("Invalid mapping");
+    return p;
 }
 
 int GamepadMapping::parse_int(std::string const& s, size_t o, size_t& ro) {
@@ -14,7 +15,7 @@ int GamepadMapping::parse_int(std::string const& s, size_t o, size_t& ro) {
     long ret = std::strtol(s.data() + o, &endp, 10);
     if (endp == nullptr || endp == s.data() + o)
         throw std::invalid_argument("Invalid integer");
-    ro = (size_t) (endp - (s.data() + o));
+    ro = (size_t) (endp - s.data());
     return (int) ret;
 }
 
@@ -58,16 +59,17 @@ void GamepadMapping::parse(std::string const& mapping) {
     iof = iof + 1;
     size_t iof2 = find_e(mapping, ',', iof);
     name = mapping.substr(iof, iof2 - iof);
-    iof = iof2 + 1;
-    while (iof != std::string::npos && iof < mapping.length()) {
+    iof = iof2;
+    while (iof != std::string::npos && iof + 1 < mapping.length()) {
         Mapping c;
 
+        iof++;
         // parse target
         char toMod = 0;
         if (mapping[iof] == '-' || mapping[iof] == '+')
             toMod = mapping[iof++];
         iof2 = find_e(mapping, ':', iof);
-        std::string from (mapping.substr(iof, iof2));
+        std::string from (mapping.substr(iof, iof2 - iof));
         auto btn = knownButtons.find(from);
         auto axis = knownAxis.find(from);
         if (btn != knownButtons.end()) {
@@ -88,6 +90,7 @@ void GamepadMapping::parse(std::string const& mapping) {
             }
         } else {
             iof = mapping.find(',', iof + 1);
+
             continue;
         }
         iof = iof2 + 1;
@@ -103,10 +106,10 @@ void GamepadMapping::parse(std::string const& mapping) {
         }
         if (mapping[iof] == 'b') {
             c.from.type = MapFrom::Type::BUTTON;
-            c.from.d.button.id = parse_int(mapping, iof, iof);
+            c.from.d.button.id = parse_int(mapping, iof + 1, iof);
         } else if (mapping[iof] == 'a') {
             c.from.type = MapFrom::Type::AXIS;
-            c.from.d.axis.id = parse_int(mapping, iof, iof);
+            c.from.d.axis.id = parse_int(mapping, iof + 1, iof);
             if (fromMod == 0) {
                 c.to.d.axis.min = -1.f;
                 c.to.d.axis.max = 1.f;
@@ -118,12 +121,15 @@ void GamepadMapping::parse(std::string const& mapping) {
                 std::swap(c.to.d.axis.min, c.to.d.axis.max);
         } else if (mapping[iof] == 'h') {
             c.from.type = MapFrom::Type::HAT;
-            c.from.d.hat.id = parse_int(mapping, iof, iof);
-            if (mapping[iof + 1] != '.')
+            c.from.d.hat.id = parse_int(mapping, iof + 1, iof);
+            if (mapping[iof] != '.')
                 throw std::invalid_argument("Invalid mapping: expected . after hat id");
-            c.from.d.hat.mask = parse_int(mapping, iof, iof);
+            c.from.d.hat.mask = parse_int(mapping, iof + 1, iof);
+        } else {
+            throw std::invalid_argument("Invalid mapping: invalid map-to");
         }
+        mappings.push_back(c);
 
-        iof = mapping.find(',', iof + 1);
+        iof = mapping.find(',', iof);
     }
 }
