@@ -18,6 +18,7 @@ public:
 
     CallbackList<std::function<void (Gamepad* gp)>> onGamepadConnected;
     CallbackList<std::function<void (Gamepad* gp)>> onGamepadDisconnected;
+    CallbackList<std::function<void (Gamepad* gp, GamepadButton btn, bool pressed)>> onGamepadButton;
 
     void addMapping(GamepadMapping& mapping);
     void addMapping(std::string const& mapping);
@@ -36,6 +37,8 @@ protected:
 
     void onJoystickConnected(Joystick* js);
     void onJoystickDisconnected(Joystick* js);
+
+    void onJoystickButton(Joystick* js, int button, bool state);
 
 };
 

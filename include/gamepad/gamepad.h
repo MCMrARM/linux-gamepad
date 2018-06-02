@@ -22,6 +22,10 @@ public:
         return joystick;
     }
 
+    GamepadMapping& getMapping() const {
+        return mapping;
+    }
+
     int getIndex() const {
         return index;
     }

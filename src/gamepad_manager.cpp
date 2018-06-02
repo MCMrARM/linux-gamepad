@@ -2,13 +2,15 @@
 #include <gamepad/joystick_manager.h>
 #include <gamepad/gamepad.h>
 #include <gamepad/joystick.h>
+#include <gamepad/gamepad_mapping.h>
 
 using namespace gamepad;
 
 GamepadManager::GamepadManager(JoystickManager& jsManager) : jsManager(jsManager) {
     using namespace std::placeholders;
-    jsManager.onJoystickConnected.add(*this, std::bind(&GamepadManager::onJoystickConnected, this, std::placeholders::_1));
-    jsManager.onJoystickDisconnected.add(*this, std::bind(&GamepadManager::onJoystickDisconnected, this, std::placeholders::_1));
+    jsManager.onJoystickConnected.add(*this, std::bind(&GamepadManager::onJoystickConnected, this, _1));
+    jsManager.onJoystickDisconnected.add(*this, std::bind(&GamepadManager::onJoystickDisconnected, this, _1));
+    jsManager.onJoystickButton.add(*this, std::bind(&GamepadManager::onJoystickButton, this, _1, _2, _3));
 }
 
 void GamepadManager::addMapping(GamepadMapping& mapping) {
@@ -56,4 +58,17 @@ void GamepadManager::onJoystickDisconnected(Joystick* js) {
 
 GamepadMapping& GamepadManager::getMapping(Joystick* js) {
     return defaultMapping;
+}
+
+void GamepadManager::onJoystickButton(Joystick* js, int button, bool state) {
+    Gamepad* gp = js->getGamepad();
+    if (gp == nullptr)
+        return;
+    for (auto const& map : gp->getMapping().mappings) {
+        if (map.from.type != GamepadMapping::MapFrom::Type::BUTTON || map.from.d.button.id != button)
+            continue;
+        if (map.to.type == GamepadMapping::MapTo::Type::BUTTON) {
+            onGamepadButton(gp, map.to.d.button.id, state);
+        }
+    }
 }
