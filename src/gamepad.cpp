@@ -15,8 +15,13 @@ bool Gamepad::getButton(GamepadButton index) const {
         } else if (map.from.type == GamepadMapping::MapFrom::Type::AXIS) {
             auto& a = map.from.d.axis;
             float v = joystick.getAxis(a.id);
-            if (v >= std::min(a.min, a.max) && v <= std::max(a.min, a.max))
-                return true;
+            if (map.from.d.axis.min < map.from.d.axis.max) {
+                if (v >= (map.from.d.axis.min + map.from.d.axis.max) / 2)
+                    return true;
+            } else {
+                if (v <= (map.from.d.axis.min + map.from.d.axis.max) / 2)
+                    return true;
+            }
         } else  if (map.from.type == GamepadMapping::MapFrom::Type::HAT) {
             int v = joystick.getHat(map.from.d.hat.id);
             if (v & map.from.d.hat.mask)
