@@ -3,6 +3,8 @@
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
+#include <sstream>
+#include <iomanip>
 
 using namespace gamepad;
 
@@ -55,6 +57,23 @@ LinuxJoystick::LinuxJoystick(LinuxJoystickManager* mgr, struct libevdev* edev) :
             continue;
         axis[i].index = axis[i + 1].index = nextId++;
     }
+}
+
+static void writeLEShort(std::ostream& s, unsigned short v) {
+    s << std::setw(2) << (v & 0xff) << std::setw(2) << ((v >> 8) & 0xff);
+}
+std::string LinuxJoystick::getGUID() const {
+    std::stringstream ss;
+    ss << std::hex << std::setfill('0');
+    writeLEShort(ss, (unsigned short) libevdev_get_id_bustype(edev));
+    writeLEShort(ss, 0);
+    writeLEShort(ss, (unsigned short) libevdev_get_id_vendor(edev));
+    writeLEShort(ss, 0);
+    writeLEShort(ss, (unsigned short) libevdev_get_id_product(edev));
+    writeLEShort(ss, 0);
+    writeLEShort(ss, (unsigned short) libevdev_get_id_version(edev));
+    writeLEShort(ss, 0);
+    return ss.str();
 }
 
 void LinuxJoystick::poll() {

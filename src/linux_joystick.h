@@ -40,19 +40,21 @@ public:
 
     void poll();
 
-    virtual bool getButton(int index) const {
+    std::string getGUID() const override;
+
+    bool getButton(int index) const override {
         if (index < 0 || index >= BUTTON_COUNT)
             return false;
         return buttonValues[index];
     }
 
-    virtual float getAxis(int index) const {
+    float getAxis(int index) const override {
         if (index < 0 || index >= AXIS_COUNT)
             return false;
         return axisValues[index];
     }
 
-    virtual int getHat(int index) const {
+    int getHat(int index) const override {
         if (index < 0 || index >= HAT_COUNT)
             return false;
         return hatValues[index];

@@ -57,6 +57,10 @@ void GamepadManager::onJoystickDisconnected(Joystick* js) {
 }
 
 GamepadMapping& GamepadManager::getMapping(Joystick* js) {
+    std::string guid = js->getGUID();
+    auto mapping = mappings.find(guid);
+    if (mapping != mappings.end())
+        return mapping->second;
     return defaultMapping;
 }
 

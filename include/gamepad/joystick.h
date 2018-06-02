@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 namespace gamepad {
 
 class Gamepad;
@@ -10,6 +12,8 @@ private:
     Gamepad* gamepad = nullptr;
 
 public:
+    virtual std::string getGUID() const = 0;
+
     virtual bool getButton(int index) const = 0;
 
     virtual float getAxis(int index) const = 0;
