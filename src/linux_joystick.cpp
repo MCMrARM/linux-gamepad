@@ -126,7 +126,7 @@ void LinuxJoystick::poll() {
                 v = - (float) e.value / a.min;
             if (std::abs(e.value) < a.flat)
                 v = 0.f;
-            v = std::min(std::max(v, 0.f), 1.f);
+            v = std::min(std::max(v, -1.f), 1.f);
             axisValues[a.index] = v;
             if (mgr)
                 mgr->onJoystickAxis(this, a.index, v);
