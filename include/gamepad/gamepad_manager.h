@@ -40,6 +40,7 @@ protected:
     void onJoystickDisconnected(Joystick* js);
 
     void onJoystickButton(Joystick* js, int button, bool state);
+    void onJoystickAxis(Joystick* js, int axis, float value);
 
 };
 
