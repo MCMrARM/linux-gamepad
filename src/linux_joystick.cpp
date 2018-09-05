@@ -123,10 +123,10 @@ void LinuxJoystick::poll() {
             int iv = e.value - (a.min + a.max) / 2;
             float v;
             if (iv >= 0)
-                v = (float) e.value / (a.max - (a.min + a.max) / 2);
+                v = (float) iv / (a.max - (a.min + a.max) / 2);
             else
-                v = - (float) e.value / (a.min - (a.min + a.max) / 2);
-            if (std::abs(e.value) < a.flat)
+                v = - (float) iv / (a.min - (a.min + a.max) / 2);
+            if (std::abs(iv) < a.flat)
                 v = 0.f;
             v = std::min(std::max(v, -1.f), 1.f);
             axisValues[a.index] = v;
