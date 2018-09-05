@@ -120,11 +120,12 @@ void LinuxJoystick::poll() {
             auto& a = axis[e.code];
             if (a.index == -1)
                 continue;
+            int iv = e.value - (a.min + a.max) / 2;
             float v;
-            if (e.value >= 0)
-                v = (float) e.value / a.max;
+            if (iv >= 0)
+                v = (float) e.value / (a.max - (a.min + a.max) / 2);
             else
-                v = - (float) e.value / a.min;
+                v = - (float) e.value / (a.min - (a.min + a.max) / 2);
             if (std::abs(e.value) < a.flat)
                 v = 0.f;
             v = std::min(std::max(v, -1.f), 1.f);
