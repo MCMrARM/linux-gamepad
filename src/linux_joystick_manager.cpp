@@ -1,5 +1,6 @@
 #include "linux_joystick_manager.h"
 #include <gamepad/joystick_manager_factory.h>
+#include <stdexcept>
 #include <cstring>
 #include <fcntl.h>
 #include <unistd.h>
