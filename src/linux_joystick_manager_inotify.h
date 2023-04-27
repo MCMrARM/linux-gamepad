@@ -3,6 +3,7 @@
 #include <gamepad/joystick_manager.h>
 #include <memory>
 #include <regex>
+#include <string>
 #include "linux_joystick.h"
 
 namespace gamepad {
@@ -22,8 +23,8 @@ public:
 
     void poll() override;
 
-    void onDeviceAdded(const char* devPath);
-    void onDeviceRemoved(const char* devPath);
+    void onDeviceAdded(const std::string& devPath);
+    void onDeviceRemoved(const std::string& devPath);
 
 };
 

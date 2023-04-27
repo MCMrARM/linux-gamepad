@@ -44,68 +44,49 @@ LinuxJoystickManager::~LinuxJoystickManager() {
 
 // Copy from https://github.com/glfw/glfw/blob/3fa2360720eeba1964df3c0ecf4b5df8648a8e52/src/linux_joystick.c#L265
 void LinuxJoystickManager::initialize() {
-    const char* dirname = "/dev/input";
+    std::string dirname = "/dev/input";
 
     inotify = inotify_init1(IN_NONBLOCK | IN_CLOEXEC);
-    if (inotify > 0)
-    {
-        // HACK: Register for IN_ATTRIB to get notified when udev is done
-        //       This works well in practice but the true way is libudev
-
-        watch = inotify_add_watch(inotify,
-                                              dirname,
-                                              IN_CREATE | IN_ATTRIB | IN_DELETE);
+    if (inotify > 0) {
+        watch = inotify_add_watch(inotify, dirname.data(), IN_CREATE | IN_ATTRIB | IN_DELETE);
     }
-
-    // Continue without device connection notifications if inotify fails
-
     regex.assign("^event[0-9]+$");
-
-    DIR* dir = opendir(dirname);
-    if (dir)
-    {
-        struct dirent* entry;
-
-        while ((entry = readdir(dir)))
-        {
-            if (!std::regex_match(entry->d_name, regex))
+    DIR* dir = opendir(dirname.data());
+    if (dir) {
+        dirent* entry;
+        while ((entry = readdir(dir))) {
+            if (!std::regex_match(entry->d_name, regex)) {
                 continue;
-
-            char path[PATH_MAX];
-
-            snprintf(path, sizeof(path), "%s/%s", dirname, entry->d_name);
-
-            onDeviceAdded(path);
+            }
+            onDeviceAdded(dirname + "/" + std::string(entry->d_name, strnlen(entry->d_name, sizeof(entry->d_name))));
         }
-
         closedir(dir);
     }
 }
 
 void LinuxJoystickManager::poll() {
-    if (inotify > 0) {
-
-        ssize_t offset = 0;
+    if(inotify > 0) {
         char buffer[16384];
-        const ssize_t size = read(inotify, buffer, sizeof(buffer));
-
-        while (size > offset)
-        {
-            const struct inotify_event* e = (struct inotify_event*) (buffer + offset);
-
-            offset += sizeof(struct inotify_event) + e->len;
-
-            if (!std::regex_match(e->name, regex))
+        for(ssize_t i = 0, length = read(inotify, buffer, sizeof(buffer)); i < length; ) {
+            auto e = (const inotify_event*)(buffer + i);
+            if(e->len <= 0 || (e->name + e->len) > (buffer + length)) {
+                printf("inotify_event unexpected e->len %ld\n", (long)e->len);
+                break;
+            }
+            i += sizeof(inotify_event) + e->len;
+            if(e->len < 1) {
+                printf("inotify_event skip empty name\n");
                 continue;
-
-            char path[PATH_MAX];
-            snprintf(path, sizeof(path), "/dev/input/%s", e->name);
-
-            if (e->mask & (IN_CREATE | IN_ATTRIB))
-                onDeviceAdded(path);
-            else if (e->mask & IN_DELETE)
-            {
-                onDeviceRemoved(path);
+            }
+            std::string devPath(e->name, strnlen(e->name, e->len));
+            if (!std::regex_match(devPath, regex)) {
+                continue;
+            }
+            devPath = "/dev/input/" + devPath;
+            if(e->mask & (IN_CREATE | IN_ATTRIB)) {
+                onDeviceAdded(devPath);
+            } else if(e->mask & IN_DELETE) {
+                onDeviceRemoved(devPath);
             }
         }
     }
@@ -114,31 +95,33 @@ void LinuxJoystickManager::poll() {
         js->poll();
 }
 
-void LinuxJoystickManager::onDeviceAdded(const char* devPath) {
-    for (auto it = joysticks.begin(); it != joysticks.end(); it++) {
-        if (strcmp(it->get()->getPath().c_str(), devPath) == 0) {
+void LinuxJoystickManager::onDeviceAdded(const std::string& devPath) {
+    for(auto it = joysticks.begin(); it != joysticks.end(); it++) {
+        if(it->get()->getPath() == devPath) {
             return;
         }
     }
-    int fd = open(devPath, O_RDONLY | O_NONBLOCK);
-    struct libevdev* edev = nullptr;
+    int fd = open(devPath.data(), O_RDONLY | O_NONBLOCK);
+    if(fd == -1) {
+        printf("open error %i (%s)\n", (int)errno, devPath.data());
+        return;
+    }
+    libevdev* edev = nullptr;
     int err = libevdev_new_from_fd(fd, &edev);
-    if (err) {
-        printf("libevdev_new_from_fd error %i (%s)\n", err, devPath);
+    if(err) {
+        printf("libevdev_new_from_fd error %i (%s)\n", err, devPath.data());
         close(fd);
         return;
     }
 
-    std::unique_ptr<LinuxJoystick> js (new LinuxJoystick(this, devPath, edev));
+    auto js = std::make_unique<LinuxJoystick>(this, devPath, edev);
     onJoystickConnected(js.get());
     joysticks.push_back(std::move(js));
 }
 
-void LinuxJoystickManager::onDeviceRemoved(const char* devPath) {
-    if (devPath == nullptr)
-        return;
-    for (auto it = joysticks.begin(); it != joysticks.end(); it++) {
-        if (strcmp(it->get()->getPath().c_str(), devPath) == 0) {
+void LinuxJoystickManager::onDeviceRemoved(const std::string& devPath) {
+    for(auto it = joysticks.begin(); it != joysticks.end(); it++) {
+        if(it->get()->getPath() == devPath) {
             onJoystickDisconnected(it->get());
             joysticks.erase(it);
             return;
@@ -147,5 +130,5 @@ void LinuxJoystickManager::onDeviceRemoved(const char* devPath) {
 }
 
 std::shared_ptr<JoystickManager> JoystickManagerFactory::create() {
-    return std::shared_ptr<JoystickManager>(new LinuxJoystickManager());
+    return std::make_shared<LinuxJoystickManager>();
 }
