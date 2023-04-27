@@ -7,12 +7,12 @@
 
 namespace gamepad {
 
-class LinuxJoystickManager;
+class JoystickManager;
 
 class LinuxJoystick : public Joystick {
 
 private:
-    LinuxJoystickManager* mgr;
+    JoystickManager* mgr;
     struct libevdev* edev;
     std::string devPath;
 
@@ -37,7 +37,7 @@ private:
     }
 
 public:
-    LinuxJoystick(LinuxJoystickManager* mgr, std::string const& path, struct libevdev* edev);
+    LinuxJoystick(JoystickManager* mgr, std::string const& path, struct libevdev* edev);
 
     inline std::string const& getPath() const {
         return devPath;
